@@ -1,0 +1,2 @@
+ros_basics_2019
+-DCATKIN_DEVEL_PREFIX=/home/hedi/Documents/ROS/ros_practicals_ws/devel -DCMAKE_INSTALL_PREFIX=/home/hedi/Documents/ROS/ros_practicals_ws/install -G Unix Makefiles
