@@ -78,7 +78,7 @@ class Thymio :
         
     #P controller
     def angular_vel(self, goal, ka=10):
-        """See video: https://www.youtube.com/watch?v=Qh15Nol5htM."""
+       
         #min(abs(self.steering_angle(goal_pose) - self.convert(self.theta)),abs(2*pi-self.steering_angle(goal_pose) - self.convert(self.theta)))
         return saturator(0.7,ka * convert(convert(convert(self.theta)-self.absolute_angle(goal))))
 
