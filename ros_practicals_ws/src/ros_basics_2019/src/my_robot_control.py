@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #!/usr/bin/env python
+import pickle
 import rospy
+import matplotlib.pyplot as plt
 from nav_msgs.msg import Odometry
 from math import pow, atan2, sqrt , pi,atan
 from tf.transformations import euler_from_quaternion 
@@ -45,7 +47,9 @@ class Thymio :
         self.pos.z=0 
         self.theta=0
         self.rate = rospy.Rate(10)
-
+        self.speed=[] 
+        self.positionx=[] 
+        self.positiony=[]
         print("Initial Position: x= {}, y = {}, theta ={}".format(self.pos.x, self.pos.y, self.theta))
 
     def receive_command(self,msg):
@@ -77,10 +81,9 @@ class Thymio :
         return convert(atan2((goal.y - self.pos.y),(goal.x - self.pos.x)))
         
     #P controller
-    def angular_vel(self, goal, ka=10):
-       
+    def angular_vel(self, goal, ka=-10):
         #min(abs(self.steering_angle(goal_pose) - self.convert(self.theta)),abs(2*pi-self.steering_angle(goal_pose) - self.convert(self.theta)))
-        return saturator(0.7,ka * convert(convert(convert(self.theta)-self.absolute_angle(goal))))
+        return saturator(0.7,ka * convert(convert(self.absolute_angle(goal)) - convert(self.theta)))
 
    
     def go(self):
@@ -119,7 +122,16 @@ class Thymio :
 
                     # Publishing our vel_msg
                     #print("Turning: theta ={}".format( vel_msg.angular.z))
+                    self.speed.append(vel_msg.linear.x) 
+                    self.positionx.append(self.pos.x)
+                    self.positiony.append(self.pos.y)
                     self.velocity_publisher.publish(vel_msg)
+                    with open('speed', 'wb') as f: 
+                        pickle.dump(self.speed, f)
+                    with open('postionx','wb') as f:
+                        pickle.dump(self.positionx,f)
+                    with open('postiony','wb') as f:
+                        pickle.dump(self.positiony,f)
 
                     # Publish at the desired rate.
                     self.rate.sleep()
@@ -135,7 +147,16 @@ class Thymio :
                     # Publishing our vel_msg
                     #print("Moving: vx= {}".format(vel_msg.linear.x))
                     #print("Distance remaining: {}".format(self.euclidean_distance(goal_pose[0])))
+                    self.speed.append(vel_msg.linear.x) 
+                    self.positionx.append(self.pos.x)
+                    self.positiony.append(self.pos.y)
                     self.velocity_publisher.publish(vel_msg)
+                    with open('speed', 'wb') as f: 
+                        pickle.dump(self.speed, f)
+                    with open('postionx','wb') as f:
+                        pickle.dump(self.positionx,f)
+                    with open('postiony','wb') as f:
+                        pickle.dump(self.positiony,f)
 
                     # Publish at the desired rate.
                     self.rate.sleep()
@@ -174,5 +195,19 @@ if __name__ == '__main__':
     try:
         rob = Thymio()
         rob.go()
+        plt.figure()
+        plt.plot(rob.speed)
+        plt.xlabel("Time sample")
+        plt.ylabel("linear speed [m/s]")
+        plt.grid(True)
+        plt.savefig("Speed.png")
+
+        plt.figure()
+        plt.plot(rob.positionx)
+        plt.plot(rob.positiony)
+        plt.xlabel("Time sample")
+        plt.ylabel("position [m]")     
+        plt.legend(("Postion in x axis","postion in y axis "))
+        plt.savefig("postion.png")   
     except rospy.ROSInterruptException:
         pass
